@@ -50,14 +50,15 @@ public:
 
 	auto positions() const { return _positions; }
 
-	std::pair<size_t, uint32_t> best_position_and_cost()
+	template<typename FuelBurnFn_T>
+	std::pair<size_t, uint32_t> best_position_and_cost(FuelBurnFn_T fuel_burn_fn)
 	{
 		const auto max_position = *std::max_element(_positions.begin(), _positions.end());
 
 		auto out = std::make_pair(size_t{ 0 }, std::numeric_limits<uint32_t>::max());
 
 		for (size_t position = 0; position <= max_position; ++position) {
-			const auto cost = _position_cost(position);
+			const auto cost = _position_cost(position, fuel_burn_fn);
 			if (cost < out.second) {
 				out.first = position;
 				out.second = cost;
@@ -69,11 +70,12 @@ public:
 
 private:
 
-	uint32_t _position_cost(size_t position) const
+	template<typename FuelBurnFn_T>
+	uint32_t _position_cost(size_t position, FuelBurnFn_T fuel_burn_fn) const
 	{
 		return std::accumulate(_positions.begin(), _positions.end(), uint32_t{ 0 },
-			[position](auto curr, const auto& next) {
-				return static_cast<uint32_t>(curr + std::abs(static_cast<int>(next - position)));
+			[position, &fuel_burn_fn](auto curr, const auto& next) {
+				return static_cast<uint32_t>(curr + fuel_burn_fn(std::abs(static_cast<int>(next - position))));
 			});
 	}
 

@@ -212,6 +212,35 @@ public:
 				Logger::WriteMessage(std::format("\tShoal size after 256 days: {}\n", number_of_fish).c_str());
 			}
 		}
+
+		// Day 7
+		{
+			Logger::WriteMessage("Day 7:\n");
+
+			// Part 1
+			{
+				std::ifstream data_file(DATA_DIR / "Day7_input.txt");
+				Assert::IsTrue(data_file.is_open());
+
+				const auto [best_position, cost] = aoc::CrabSorter{}.load(data_file).best_position_and_cost([](uint32_t distance) { return distance; });
+
+				Logger::WriteMessage(std::format("\tBest position: {}, cost: {}\n", best_position, cost).c_str());
+			}
+
+			// Part 2
+			{
+				std::ifstream data_file(DATA_DIR / "Day7_input.txt");
+				Assert::IsTrue(data_file.is_open());
+
+				const auto [best_position, cost] = aoc::CrabSorter{}
+					.load(data_file)
+					.best_position_and_cost([](uint32_t distance) {
+					return (distance * (1 + distance)) / 2;
+						});
+
+				Logger::WriteMessage(std::format("\tBest position: {}, cost: {}\n", best_position, cost).c_str());
+			}
+		}
 	}
 };
 }
@@ -1396,14 +1425,17 @@ public:
 
 	TEST_METHOD(FindVentScoreWithDiagonalsForFullInput)
 	{
-		std::ifstream data_file(DATA_DIR / "Day5_input.txt");
-		Assert::IsTrue(data_file.is_open());
+		for (int i = 0; i < 100; ++i)
+		{
+			std::ifstream data_file(DATA_DIR / "Day5_input.txt");
+			Assert::IsTrue(data_file.is_open());
 
-		const auto vent_score = aoc::Submarine()
-			.boat_systems()
-			.detect_vents<aoc::VentAnalyzer::horizontal | aoc::VentAnalyzer::vertical | aoc::VentAnalyzer::diagonal>(data_file);
+			const auto vent_score = aoc::Submarine()
+				.boat_systems()
+				.detect_vents<aoc::VentAnalyzer::horizontal | aoc::VentAnalyzer::vertical | aoc::VentAnalyzer::diagonal>(data_file);
 
-		Assert::AreEqual(uint32_t{ 20196 }, vent_score);
+			Assert::AreEqual(uint32_t{ 20196 }, vent_score);
+		}
 	}
 };
 }
@@ -1458,20 +1490,36 @@ public:
 	{
 		std::stringstream data("16,1,2,0,4,2,7,1,2,14");
 
-		const auto [best_position, cost] = aoc::CrabSorter{}.load(data).best_position_and_cost();
+		const auto [best_position, cost] = aoc::CrabSorter{}.load(data).best_position_and_cost([](uint32_t distance) { return distance; });
 
 		Assert::AreEqual(size_t{ 2 }, best_position);
 		Assert::AreEqual(uint32_t{ 37 }, cost);
 	}
 
-	TEST_METHOD(CalculateBestPositionForAllInput)
+	TEST_METHOD(CalculateBestPositionForAllInputWithLinCost)
 	{
 		std::ifstream data_file(DATA_DIR / "Day7_input.txt");
 		Assert::IsTrue(data_file.is_open());
 
-		const auto [best_position, cost] = aoc::CrabSorter{}.load(data_file).best_position_and_cost();
+		const auto [best_position, cost] = aoc::CrabSorter{}.load(data_file).best_position_and_cost([](uint32_t distance) { return distance; });
 
-		Logger::WriteMessage(std::format("Best position: {}\ncost: {}\n", best_position, cost).c_str());
+		Assert::AreEqual(size_t{ 330 }, best_position);
+		Assert::AreEqual(uint32_t{ 329389 }, cost);
+	}
+
+	TEST_METHOD(CalculateBestPositionForAllInputWithQuadraticCost)
+	{
+		std::ifstream data_file(DATA_DIR / "Day7_input.txt");
+		Assert::IsTrue(data_file.is_open());
+
+		const auto [best_position, cost] = aoc::CrabSorter{}
+			.load(data_file)
+			.best_position_and_cost([](uint32_t distance) { 
+				return (distance * ( 1 + distance)) / 2;
+			});
+
+		Assert::AreEqual(size_t{ 459 }, best_position);
+		Assert::AreEqual(uint32_t{ 86397080 }, cost);
 	}
 };
 }
